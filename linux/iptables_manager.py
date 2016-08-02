@@ -36,9 +36,6 @@ import common
 
 LOG = logging.getLogger(__name__)
 
-#common.register_iptables_opts(cfg.CONF)
-
-
 # NOTE(vish): Iptables supports chain names of up to 28 characters,  and we
 #             add up to 12 characters to binary_name which is used as a prefix,
 #             so we limit it to 16 characters.
