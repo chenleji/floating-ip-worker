@@ -103,7 +103,9 @@ def execute(cmd, process_input=None, addl_env=None,
             _process_input = encodeutils.to_utf8(process_input)
         else:
             _process_input = None
-        if run_as_root and cfg.CONF.AGENT.root_helper_daemon:
+
+        # if run_as_root and cfg.CONF.AGENT.root_helper_daemon:
+        if False:
             returncode, _stdout, _stderr = (
                 execute_rootwrap_daemon(cmd, process_input, addl_env))
         else:

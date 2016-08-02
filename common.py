@@ -152,4 +152,4 @@ def register_process_monitor_opts(conf):
 
 
 def get_root_helper(conf):
-    return conf.AGENT.root_helper
+    return "sudo"

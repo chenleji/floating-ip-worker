@@ -26,19 +26,17 @@ import re
 import sys
 
 from oslo_concurrency import lockutils
-from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
 import six
 
 from _i18n import _, _LE, _LW
-from linux import iptables_comments as ic
 from linux import utils as linux_utils
 import common
 
 LOG = logging.getLogger(__name__)
 
-common.register_iptables_opts(cfg.CONF)
+#common.register_iptables_opts(cfg.CONF)
 
 
 # NOTE(vish): Iptables supports chain names of up to 28 characters,  and we
@@ -62,7 +60,8 @@ IPTABLES_ERROR_LINES_OF_CONTEXT = 5
 
 
 def comment_rule(rule, comment):
-    if not cfg.CONF.AGENT.comment_iptables_rules or not comment:
+    #if not cfg.CONF.AGENT.comment_iptables_rules or not comment:
+    if not comment:
         return rule
     # iptables-save outputs the comment before the jump so we need to match
     # that order so _find_last_entry works
@@ -307,88 +306,22 @@ class IptablesManager(object):
         self.iptables_apply_deferred = False
         self.wrap_name = binary_name[:16]
 
-        self.ipv4 = {'filter': IptablesTable(binary_name=self.wrap_name)}
-        self.ipv6 = {'filter': IptablesTable(binary_name=self.wrap_name)}
-
-        '''
-        # Add a neutron-filter-top chain. It's intended to be shared
-        # among the various neutron components. It sits at the very top
-        # of FORWARD and OUTPUT.
-        for tables in [self.ipv4, self.ipv6]:
-            tables['filter'].add_chain('neutron-filter-top', wrap=False)
-            tables['filter'].add_rule('FORWARD', '-j neutron-filter-top',
-                                      wrap=False, top=True)
-            tables['filter'].add_rule('OUTPUT', '-j neutron-filter-top',
-                                      wrap=False, top=True)
-
-            tables['filter'].add_chain('local')
-            tables['filter'].add_rule('neutron-filter-top', '-j $local',
-                                      wrap=False)
-
-        # Wrap the built-in chains
-        builtin_chains = {4: {'filter': ['INPUT', 'OUTPUT', 'FORWARD']},
-                          6: {'filter': ['INPUT', 'OUTPUT', 'FORWARD']}}
-
         if not state_less:
-            self.ipv4.update(
-                {'mangle': IptablesTable(binary_name=self.wrap_name)})
-            builtin_chains[4].update(
-                {'mangle': ['PREROUTING', 'INPUT', 'FORWARD', 'OUTPUT',
-                            'POSTROUTING']})
-            self.ipv6.update(
-                {'mangle': IptablesTable(binary_name=self.wrap_name)})
-            builtin_chains[6].update(
-                {'mangle': ['PREROUTING', 'INPUT', 'FORWARD', 'OUTPUT',
-                            'POSTROUTING']})
-            self.ipv4.update(
-                {'nat': IptablesTable(binary_name=self.wrap_name)})
-            builtin_chains[4].update({'nat': ['PREROUTING',
-                                      'OUTPUT', 'POSTROUTING']})
+            self.ipv4 = {'nat': IptablesTable(binary_name=self.wrap_name)}
+            self.ipv6 = {'nat': IptablesTable(binary_name=self.wrap_name)}
+            builtin_chains = {4: {'nat': ['PREROUTING']}}
 
-        self.ipv4.update({'raw': IptablesTable(binary_name=self.wrap_name)})
-        builtin_chains[4].update({'raw': ['PREROUTING', 'OUTPUT']})
-        self.ipv6.update({'raw': IptablesTable(binary_name=self.wrap_name)})
-        builtin_chains[6].update({'raw': ['PREROUTING', 'OUTPUT']})
+            for ip_version in builtin_chains:
+                if ip_version == 4:
+                    tables = self.ipv4
+                elif ip_version == 6:
+                    tables = self.ipv6
 
-        for ip_version in builtin_chains:
-            if ip_version == 4:
-                tables = self.ipv4
-            elif ip_version == 6:
-                tables = self.ipv6
-
-            for table, chains in six.iteritems(builtin_chains[ip_version]):
-                for chain in chains:
-                    tables[table].add_chain(chain)
-                    tables[table].add_rule(chain, '-j $%s' %
-                                           (chain), wrap=False)
-
-        if not state_less:
-            # Add a neutron-postrouting-bottom chain. It's intended to be
-            # shared among the various neutron components. We set it as the
-            # last chain of POSTROUTING chain.
-            self.ipv4['nat'].add_chain('neutron-postrouting-bottom',
-                                       wrap=False)
-            self.ipv4['nat'].add_rule('POSTROUTING',
-                                      '-j neutron-postrouting-bottom',
-                                      wrap=False)
-
-            # We add a snat chain to the shared neutron-postrouting-bottom
-            # chain so that it's applied last.
-            self.ipv4['nat'].add_chain('snat')
-            self.ipv4['nat'].add_rule('neutron-postrouting-bottom',
-                                      '-j $snat', wrap=False,
-                                      comment=ic.SNAT_OUT)
-
-            # And then we add a float-snat chain and jump to first thing in
-            # the snat chain.
-            self.ipv4['nat'].add_chain('float-snat')
-            self.ipv4['nat'].add_rule('snat', '-j $float-snat')
-
-            # Add a mark chain to mangle PREROUTING chain. It is used to
-            # identify ingress packets from a certain interface.
-            self.ipv4['mangle'].add_chain('mark')
-            self.ipv4['mangle'].add_rule('PREROUTING', '-j $mark')
-        '''
+                for table, chains in six.iteritems(builtin_chains[ip_version]):
+                    for chain in chains:
+                        tables[table].add_chain(chain)
+                        tables[table].add_rule(chain, '-j $%s' %
+                                               (chain), wrap=False)
 
     def get_tables(self, ip_version):
         return {4: self.ipv4, 6: self.ipv6}[ip_version]
@@ -435,7 +368,7 @@ class IptablesManager(object):
         if self.namespace:
             lock_name += '-' + self.namespace
 
-        with lockutils.lock(lock_name, common.SYNCHRONIZED_PREFIX, True):
+        with lockutils.lock(lock_name, common.SYNCHRONIZED_PREFIX, True, lock_path='/var/run'):
             return self._apply_synchronized()
 
     def get_rules_for_table(self, table):
