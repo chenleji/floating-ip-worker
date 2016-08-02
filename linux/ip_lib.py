@@ -18,7 +18,6 @@ import re
 
 import eventlet
 import netaddr
-from neutron_lib import exceptions
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
@@ -56,7 +55,7 @@ def remove_interface_suffix(interface):
     return interface.partition("@")[0]
 
 
-class AddressNotReady(exceptions.NeutronException):
+class AddressNotReady(common.Wise2cException):
     message = _("Failure waiting for address %(address)s to "
                 "become ready: %(reason)s")
 
