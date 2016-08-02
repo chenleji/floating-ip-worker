@@ -310,6 +310,7 @@ class IptablesManager(object):
         self.ipv4 = {'filter': IptablesTable(binary_name=self.wrap_name)}
         self.ipv6 = {'filter': IptablesTable(binary_name=self.wrap_name)}
 
+        '''
         # Add a neutron-filter-top chain. It's intended to be shared
         # among the various neutron components. It sits at the very top
         # of FORWARD and OUTPUT.
@@ -387,6 +388,7 @@ class IptablesManager(object):
             # identify ingress packets from a certain interface.
             self.ipv4['mangle'].add_chain('mark')
             self.ipv4['mangle'].add_rule('PREROUTING', '-j $mark')
+        '''
 
     def get_tables(self, ip_version):
         return {4: self.ipv4, 6: self.ipv6}[ip_version]
