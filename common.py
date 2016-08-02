@@ -16,6 +16,14 @@ _IS_IPV6_ENABLED = None
 DEFAULT_NETWORK_MTU = 1500
 IPV6_MIN_MTU = 1280
 SYNCHRONIZED_PREFIX = 'wise2c-'
+TAP_DEVICE_PREFIX = 'tap'
+IP_VERSION_4 = 4
+IP_VERSION_6 = 6
+IPv4_ANY = '0.0.0.0/0'
+IPv6_ANY = '::/0'
+IP_ANY = {IP_VERSION_4: IPv4_ANY, IP_VERSION_6: IPv6_ANY}
+# Linux interface max length
+DEVICE_NAME_MAX_LEN = 15
 
 PROCESS_MONITOR_OPTS = [
     cfg.StrOpt('check_child_processes_action', default='respawn',
