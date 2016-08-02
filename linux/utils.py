@@ -23,10 +23,8 @@ import socket
 import struct
 import threading
 
-import debtcollector
 from eventlet.green import subprocess
 from eventlet import greenthread
-from neutron_lib import constants
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_rootwrap import client
@@ -148,7 +146,7 @@ def get_interface_mac(interface):
     MAC_START = 18
     MAC_END = 24
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    dev = interface[:constants.DEVICE_NAME_MAX_LEN]
+    dev = interface[:common.DEVICE_NAME_MAX_LEN]
     dev = encodeutils.to_utf8(dev)
     info = fcntl.ioctl(s.fileno(), 0x8927, struct.pack('256s', dev))
     return ''.join(['%02x:' % ord(char)

@@ -18,7 +18,6 @@ import re
 
 import eventlet
 import netaddr
-from neutron_lib import constants
 from neutron_lib import exceptions
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -418,7 +417,7 @@ class IpRuleCommand(IpCommandBase):
             k, v = item
             # ip rule shows these as 'any'
             if k == 'from' and v == 'all':
-                return k, constants.IP_ANY[ip_version]
+                return k, common.IP_ANY[ip_version]
             # lookup and table are interchangeable.  Use table every time.
             if k == 'lookup':
                 return 'table', v
@@ -715,7 +714,7 @@ class IpRouteCommand(IpDeviceCommandBase):
             route['cidr'] = parts[0]
             # Avoids having to explicitly pass around the IP version
             if route['cidr'] == 'default':
-                route['cidr'] = constants.IP_ANY[ip_version]
+                route['cidr'] = common.IP_ANY[ip_version]
 
             # ip route drops things like scope and dev from the output if it
             # was specified as a filter.  This allows us to add them back.

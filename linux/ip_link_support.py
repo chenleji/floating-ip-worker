@@ -15,7 +15,7 @@
 
 import re
 
-from neutron_lib import exceptions as n_exc
+import common
 from oslo_log import log as logging
 
 from _i18n import _, _LE
@@ -25,7 +25,7 @@ from linux import utils
 LOG = logging.getLogger(__name__)
 
 
-class IpLinkSupportError(n_exc.NeutronException):
+class IpLinkSupportError(common.Wise2cException):
     pass
 
 
