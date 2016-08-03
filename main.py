@@ -37,7 +37,7 @@ app.logger.setLevel(logging.DEBUG)
 app.logger.info("Application started")
 
 
-@app.route('/NetworkDriver.Join', methods=['POST'])
+@app.route('/NetworkDriver/Join', methods=['POST'])
 def join():
     json_data = request.get_json(force=True)
     app.logger.debug("Join JSON=%s", json_data)
@@ -58,7 +58,7 @@ def join():
     return jsonify({})
 
 
-@app.route('/NetworkDriver.Leave', methods=['POST'])
+@app.route('/NetworkDriver/Leave', methods=['POST'])
 def leave():
     json_data = request.get_json(force=True)
     app.logger.debug("Leave JSON=%s", json_data)
